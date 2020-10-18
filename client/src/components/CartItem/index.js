@@ -1,25 +1,43 @@
 import React from 'react';
 import { useStoreContext } from '../../utils/GlobalState';
 import { REMOVE_FROM_CART, UPDATE_CART_QUANTITY } from '../../utils/actions';
-import { idbPromise } from "../../utils/helpers";
-
-
-const [, dispatch] = useStoreContext();
-
-const removeFromCart = item => {
-  dispatch({
-    type: REMOVE_FROM_CART,
-    _id: item._id
-  });
-  idbPromise('cart', 'delete', { ...item });
-};
-
+import { idbPromise } from '../../utils/helpers';
 
 const CartItem = ({ item }) => {
+
+  const [, dispatch] = useStoreContext();
+
+  const removeFromCart = item => {
+    dispatch({
+      type: REMOVE_FROM_CART,
+      _id: item._id
+    })
+    idbPromise('cart', 'delete', { ...item })
+  }
+
+  const onChange = (e) => {
+    const value = e.target.value;
+
+    if (value === '0') {
+      dispatch({
+        type: REMOVE_FROM_CART,
+        _id: item._id
+      })
+      idbPromise('cart', 'delete', {...item})
+    } else {
+      dispatch({ 
+        type: UPDATE_CART_QUANTITY,
+        _id: item._id,
+        purchaseQuantity: parseInt(value)
+      })
+      idbPromise('cart', 'put', {...item, purchaseQuantity: parseInt(value) })
+    }
+  }
+  
   return (
     <div className="flex-row">
       <div>
-        <img
+        <img 
           src={`/images/${item.image}`}
           alt=""
         />
@@ -28,7 +46,7 @@ const CartItem = ({ item }) => {
         <div>{item.name}, ${item.price}</div>
         <div>
           <span>Qty:</span>
-          <input
+          <input 
             type="number"
             placeholder="1"
             value={item.purchaseQuantity}
@@ -39,35 +57,12 @@ const CartItem = ({ item }) => {
             aria-label="trash"
             onClick={() => removeFromCart(item)}
           >
-            🗑️
+            🗑
           </span>
         </div>
       </div>
     </div>
-  );
+  )
 }
-
-const onChange = (e) => {
-  const value = e.target.value;
-
-  if (value === '0') {
-    dispatch({
-      type: REMOVE_FROM_CART,
-      _id: item._id
-    });
-  
-    idbPromise('cart', 'delete', { ...item });
-  } else {
-    dispatch({
-      type: UPDATE_CART_QUANTITY,
-      _id: item._id,
-      purchaseQuantity: parseInt(value)
-    });
-  
-    idbPromise('cart', 'put', { ...item, purchaseQuantity: parseInt(value) });
-  }
-};
-
-
 
 export default CartItem;
